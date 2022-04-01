@@ -1,7 +1,9 @@
 {% extends 'blog/base.html' %}
+
 {% block head_title %}
     {{ post.title }} - Blog
 {% endblock %}
+
 
 {% block main_area %}
     <div id="post-area">
@@ -42,7 +44,7 @@
         <hr>
 
         <!-- Post Content -->
-        <p>{{ post.content }}</p>
+        <p>{{ post.get_content_markdown | safe }}</p>
 
         {% if post.tags.exists %}
             <i class="fas fa-tags"></i>
