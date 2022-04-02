@@ -3,7 +3,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils.text import slugify
 from django.shortcuts import get_object_or_404
-from .models import Post, Category, Tag, Comment
+from .models import Post, Category, Tag, Commnet
 from django.core.exceptions import PermissionDenied
 from .forms import CommentForm
 
@@ -162,7 +162,7 @@ def new_comment(request, pk):
 
 
 class CommentUpdate(LoginRequiredMixin, UpdateView):
-    model = Comment
+    model = Commnet
     form_class = CommentForm
 
     def dispatch(self, request, *args, **kwargs):
@@ -173,7 +173,7 @@ class CommentUpdate(LoginRequiredMixin, UpdateView):
 
 
 def delete_comment(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)
+    comment = get_object_or_404(Commnet, pk=pk)
     post = comment.post
     if request.user.is_authenticated and request.user == comment.author:
         comment.delete()
