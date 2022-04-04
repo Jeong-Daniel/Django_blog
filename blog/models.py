@@ -1,9 +1,8 @@
-import os.path
-import os
-from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import User
 from markdownx.models import MarkdownxField
 from markdownx.utils import markdown
+import os
 
 
 class Tag(models.Model):
@@ -28,7 +27,7 @@ class Category(models.Model):
         return f'/blog/category/{self.slug}/'
 
     class Meta:
-        verbose_name_plural = 'Categories'
+        verbose_name_plural = 'categories'
 
 
 class Post(models.Model):
@@ -42,10 +41,9 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    author = models.ForeignKey(User, null=True ,on_delete=models.CASCADE)
+    author = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL)
-
     tags = models.ManyToManyField(Tag, blank=True)
 
     def __str__(self):
@@ -64,9 +62,9 @@ class Post(models.Model):
         return markdown(self.content)
 
 
-class Commnet(models.Model):
-    post=models.ForeignKey(Post, on_delete=models.CASCADE)
-    author = models.ForeignKey(User,on_delete=models.CASCADE)
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -74,5 +72,11 @@ class Commnet(models.Model):
     def __str__(self):
         return f'{self.author}::{self.content}'
 
-    def get_absoulte_url(self):
-        return f'{self.post.get_absolute_url()}#commnet-{self.pk}'
+    def get_absolute_url(self):
+        return f'{self.post.get_absolute_url()}#comment-{self.pk}'
+
+    def get_avatar_url(self):
+        if self.author.socialaccount_set.exists():
+            return self.author.socialaccount_set.first().get_avatar_url()
+        else:
+            return f'https://doitdjango.com/avatar/id/796/07dd1913b813d574/svg/{self.author.email}'

@@ -1,0 +1,27 @@
+{% extends 'blog/base.html' %}
+{% block main_area %}
+    {% if user.is_authenticated%}
+        {% if user.is_superuser or user.is_staff %}
+            <a class="btn btn-info btn-sm float-right" href="/blog/create_post/" role="button"><i class="fas fa-pen"></i>&nbsp;&nbsp;New Post</a>
+        {% endif %}
+    {% endif %}
+    <h1>
+        Categories
+        {% if search_info %}<small class="text-muted">{{ search_info }}</small>{% endif %}
+    </h1>
+    </br>
+    {% for c in categories %}
+        <h3 class="card-title"> {{ c }} ({{ c.post_set.count }}) </h3>
+        {% for p in post_list %}
+            {% if p.category == c %}
+                <li><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></li>
+            {% endif %}
+        {% endfor %}
+        </br>
+    {% endfor %}
+    <h3 class="card-title"> 미분류 ({{ no_category_post_count }})</h3>
+        {% for ep in empty_list %}
+                <li><a href="{{ ep.get_absolute_url }}">{{ ep.title }}</a></li>
+        {% endfor %}
+    </br>
+{% endblock %}

@@ -3,14 +3,16 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils.text import slugify
 from django.shortcuts import get_object_or_404
-from .models import Post, Category, Tag, Commnet
+from .models import Post, Category, Tag, Comment
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from .forms import CommentForm
 
 
 class PostList(ListView):
     model = Post
     ordering = '-pk'
+    paginate_by = 5
 
     def get_context_data(self, **kwargs):
         context = super(PostList, self).get_context_data()
@@ -21,7 +23,7 @@ class PostList(ListView):
 
 class PostDetail(DetailView):
     model = Post
-
+    
     def get_context_data(self, **kwargs):
         context = super(PostDetail, self).get_context_data()
         context['categories'] = Category.objects.all()
@@ -61,7 +63,7 @@ class PostCreate(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             return response
 
         else:
-            return redirect('/blog/')
+                return redirect('/blog/')
 
 
 class PostUpdate(LoginRequiredMixin, UpdateView):
@@ -107,6 +109,7 @@ class PostUpdate(LoginRequiredMixin, UpdateView):
         return response
 
 
+
 def category_page(request, slug):
     if slug == 'no_category':
         category = '미분류'
@@ -127,16 +130,43 @@ def category_page(request, slug):
     )
 
 
+def categories_page(request):
+    category = Category.objects.all()
+    post_list = Post.objects.all()
+    post_list_empty = Post.objects.filter(category=None)
+    return render(
+        request,
+        'blog/categories.html',
+        {
+            'post_list': post_list,
+            'categories': Category.objects.all(),
+            'no_category_post_count': Post.objects.filter(category=None).count(),
+            'empty_list': post_list_empty
+        }
+    )
+
+
 def tag_page(request, slug):
     tag = Tag.objects.get(slug=slug)
     post_list = tag.post_set.all()
-
     return render(
         request,
         'blog/post_list.html',
         {
             'post_list': post_list,
             'tag': tag,
+            'categories': Category.objects.all(),
+            'no_category_post_count': Post.objects.filter(category=None).count(),
+        }
+    )
+
+def tags(request):
+    tag = Tag
+    return render(
+        request,
+        'blog/tags.html',
+        {
+            'tag': tag.objects.all(),
             'categories': Category.objects.all(),
             'no_category_post_count': Post.objects.filter(category=None).count(),
         }
@@ -162,7 +192,7 @@ def new_comment(request, pk):
 
 
 class CommentUpdate(LoginRequiredMixin, UpdateView):
-    model = Commnet
+    model = Comment
     form_class = CommentForm
 
     def dispatch(self, request, *args, **kwargs):
@@ -173,10 +203,28 @@ class CommentUpdate(LoginRequiredMixin, UpdateView):
 
 
 def delete_comment(request, pk):
-    comment = get_object_or_404(Commnet, pk=pk)
+    comment = get_object_or_404(Comment, pk=pk)
     post = comment.post
     if request.user.is_authenticated and request.user == comment.author:
         comment.delete()
         return redirect(post.get_absolute_url())
     else:
         raise PermissionDenied
+
+
+class PostSearch(PostList):
+    paginate_by = None
+
+    def get_queryset(self):
+        q = self.kwargs['q']
+        post_list = Post.objects.filter(
+            Q(title__contains=q) | Q(tags__name__contains=q)
+        ).distinct()
+        return post_list
+
+    def get_context_data(self, **kwargs):
+        context = super(PostSearch, self).get_context_data()
+        q = self.kwargs['q']
+        context['search_info'] = f'Search: {q} ({self.get_queryset().count()})'
+
+        return context

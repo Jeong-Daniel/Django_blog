@@ -1,7 +1,8 @@
-from .models import Commnet
+from .models import Comment
 from django import forms
+
 
 class CommentForm(forms.ModelForm):
     class Meta:
-        model = Commnet
-        filed = ('content',)
+        model = Comment
+        fields = ('content',)

@@ -16,13 +16,23 @@
                     <a class="nav-link" href="/blog/">Blog</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/about_me/">About Me</a>
+                    <a class="nav-link" href="https://jeong-daniel.github.io/">About Me</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/blog/tags/">Tags</a>
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
                 {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
+                           role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            {% if user.socialaccount_set.all.0.get_avatar_url %}
+                                <img class="rounded-circle" width="25px" src="{{ user.socialaccount_set.all.0.get_avatar_url }}" alt="">
+                            {% else %}
+                                <img class="rounded-circle" src="https://doitdjango.com/avatar/id/796/07dd1913b813d574/svg/{{ user.email }}">
+                            {% endif %}
+                            &nbsp;&nbsp;
                             {{ user.username }}
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
